@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, TextInput, Text ,Alert, SafeAreaView, TouchableOpacity} from "react-native";
+import { Modal,View, StyleSheet, TextInput, Text ,Alert, SafeAreaView, TouchableOpacity} from "react-native";
 import StartMeeting from "../components/StartMeeting";
 import { io } from "socket.io-client";
 import { Camera} from "expo-camera" ;
-import FontAwesome from "react-native-vector-icons/FontAwesome"
+import FontAwesome from "react-native-vector-icons/FontAwesome";
+import Chat from '../components/Chat'
 
 const menuIcons = [
   {
@@ -33,8 +34,9 @@ let socket;
 function MeetingRoom() {
   const [name, setName] = useState();
   const [roomId, setRoomId] = useState();
-  const [activeUsers, setActiveUsers] = useState ([ ] );
-  const [ startCamera , setStartCamera ] = useState ( false ) ;
+  const [activeUsers, setActiveUsers] = useState ([]);
+  const [ startCamera , setStartCamera ] = useState (false) ;
+  const [ modalVisible , setModalVisible ] = useState (false);
 
   const __startCamera = async ( ) => {
       const { status } = await Camera.requestCameraPermissionsAsync() ;
@@ -52,7 +54,7 @@ function MeetingRoom() {
 
   useEffect(() => {
     //const API_URL = "https://356b-103-220-210-164.in.ngrok.io";
-    socket = io("  https://0a19-103-87-141-28.in.ngrok.io ");
+    socket = io("https://0a19-103-87-141-28.in.ngrok.io ");
     socket.on("connection", () => console.log("connected"));
     socket.on("all-users", users => {
       console.log (users," After clean up " )
@@ -64,6 +66,22 @@ function MeetingRoom() {
           {/* Start meeting Section */}
       { startCamera ? (
           <SafeAreaView style={{flex: 1}}>
+            <Modal
+              animationType = "slide"
+              transparent = {false}
+              presentationStyle = {"fullScreen"}
+              visible = {modalVisible}
+              onRequestClose={()=> {
+                setModalVisible (!modalVisible) ;
+                } }
+            >
+                  < Chat
+                      modalVisible = {modalVisible}
+                      setModalVisible = {setModalVisible}
+                  />
+            </Modal>
+
+            {/* Active users */}
             <View style={styles.activeUsersContainer}>
                   <View style={styles.cameraContainer}>
                       <Camera
@@ -89,10 +107,17 @@ function MeetingRoom() {
                             key={index}
                             style={styles.tile}
                         >
-                              <FontAwesome name = {icon.name} size = { 24 } color = {"#efefef"}/>
+                              <FontAwesome name = {icon.name} size = {24} color = {"#efefef"}/>
                               < Text style = {styles.textTile} >{icon.title}</Text>
                         </TouchableOpacity>
                     )}
+                     <TouchableOpacity
+                            onPress={()=>setModalVisible(true)}
+                            style={styles.tile}
+                        >
+                              <FontAwesome name = {"comment"} size = { 24 } color = {"#efefef"}/>
+                              < Text style = {styles.textTile} >Chat</Text>
+                        </TouchableOpacity>
               </View >
           </SafeAreaView>
           
